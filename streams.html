@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streams em Java</title>
+    <style>
+        * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin-right: 1rem;
+            margin-left: 1rem;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        article {
+            max-width: 600px;
+        }
+
+        section, nav {
+            display: flex;
+            flex-direction: column;
+            align-items: right;
+        }
+
+        pre {
+            background-color: rgba(250, 250, 250, 1.0);
+            border: black solid 1px;
+            border-radius: 5px;
+            padding: 8px;
+            margin: 0;
+            width: auto;
+            white-space: pre-line;
+            line-height: 1;
+        }
+
+        pre::before {
+            counter-reset: listing;
+        }
+
+        pre code {
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 0;
+            padding: 0;
+            counter-increment: listing;
+        }
+
+        pre code::before {
+            content: counter(listing) ". ";
+        }
+    </style>
+</head>
+
+<body>
+    <article>
+        <section>
+            <h1>Sumário</h1>
+            <nav>
+                <a href="#introduction">Introdução</a>
+                <a href="#lambda">Expressões lambda, referência de método e interfaces funcionais</a>
+                <a href="#aggregation">Exemplos de uso das operações de agregação</a>
+                <a href="#implementation">Implementação do exemplo</a>
+            </nav>
+        </section>
+        <section>
+            <a id="introduction"></a>
+            <h1>Introdução</h1>
+            <p>
+                <a href="https://www.oracle.com/br/technical-resources/articles/java-stream-api.html">Stream</a> 
+                é uma <strong>sequência de elementos</strong> de uma <strong>fonte de dados</strong>
+                que oferece suporte a diferentes tipos de <strong>operações de agregação</strong>. 
+                Seguindo a definição de cada conceito apresentado temos:
+            </p>
+            <p>
+                <strong>Fonte de Dados: </strong> 
+                <span>
+                    Streams consomem dados de uma fonte, como 
+                    <a href="https://docs.oracle.com/javase/tutorial/collections/">coleções</a>, 
+                    <a href="https://siteantigo.portaleducacao.com.br/conteudo/artigos/informatica/o-que-e-um-array/66596">arrays</a>
+                    ou mesmo recursos de E/S (entrada e saída).
+                </span>
+            </p>
+            <p>
+                <strong>Sequência de Elementos: </strong> 
+                <span>
+                    Uma stream provê uma interface para um conjunto sequencial de valores de 
+                    um determinado tipo. Contudo, streams não armazenam elementos. 
+                    Eles são processados sob demanda.
+                </span>
+            </p>
+            <p>
+                <strong>Operações de agregação: </strong> 
+                <span>
+                    Streams suportam operações comuns a linguagens de programação funcionais, 
+                    como filtrar, modificar, transformar o elemento em outro e assim por diante. 
+                    Essas operações podem ser realizadas em série ou em paralelo.
+                </span>
+            </p>
+            <p>
+                <strong>Operações intermediárias: </strong> 
+                <span>
+                    Métodos que retornam uma nova Stream, assim criando uma cadeia de chamadas,
+                    o que damos o nome de <strong>pipeline</strong>, alguns métodos são: <strong>filter()</strong>,
+                    <strong>map()</strong>, <strong>sorted()</strong>, <strong>distinct()</strong>.
+                </span>
+            </p>
+            <p>
+                <strong>Operações terminais: </strong> 
+                <span>
+                    Métodos que encerram a Stream para agregar seu resultado numa lista ou outros tipos de objeto,
+                    alguns métodos são: <strong>collect()</strong>, <strong>reduce()</strong> e <strong>forEach()</strong>.
+                </span>
+            </p>
+            <!-- Diagrama de exemplo -->
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="-0.5 -0.5 698 773" content="&lt;mxfile host=&quot;app.diagrams.net&quot; modified=&quot;2021-02-21T14:21:39.287Z&quot; agent=&quot;5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36 Edg/88.0.705.74&quot; etag=&quot;1OrbSr74IpbmtfOy3F7U&quot; version=&quot;14.4.2&quot; type=&quot;device&quot;&gt;&lt;diagram id=&quot;m305zVvj_TGKGVIoKWt_&quot; name=&quot;Page-1&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;" style="background-color: rgb(255, 255, 255);"><defs/><g><path d="M 105 40 L 205 40 L 225 60 L 225 120 L 125 120 L 105 100 L 105 40 Z" fill="#a9c4eb" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 105 40 L 205 40 L 225 60 L 125 60 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/><path d="M 105 40 L 125 60 L 125 120 L 105 100 Z" fill-opacity="0.1" fill="#000000" stroke="none" pointer-events="all"/><path d="M 125 120 L 125 60 L 105 40 M 125 60 L 225 60" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 90px; margin-left: 126px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Caixa</div></div></div></foreignObject><text x="175" y="94" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Caixa</text></switch></g><path d="M 245 40 L 345 40 L 365 60 L 365 120 L 265 120 L 245 100 L 245 40 Z" fill="#a9c4eb" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 245 40 L 345 40 L 365 60 L 265 60 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/><path d="M 245 40 L 265 60 L 265 120 L 245 100 Z" fill-opacity="0.1" fill="#000000" stroke="none" pointer-events="all"/><path d="M 265 120 L 265 60 L 245 40 M 265 60 L 365 60" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 90px; margin-left: 266px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Caixa</div></div></div></foreignObject><text x="315" y="94" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Caixa</text></switch></g><path d="M 385 40 L 485 40 L 505 60 L 505 120 L 405 120 L 385 100 L 385 40 Z" fill="#ffd966" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 385 40 L 485 40 L 505 60 L 405 60 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/><path d="M 385 40 L 405 60 L 405 120 L 385 100 Z" fill-opacity="0.1" fill="#000000" stroke="none" pointer-events="all"/><path d="M 405 120 L 405 60 L 385 40 M 405 60 L 505 60" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 90px; margin-left: 406px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Caixa</div></div></div></foreignObject><text x="455" y="94" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Caixa</text></switch></g><path d="M 78 150 L 552 150" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/><ellipse cx="75" cy="150" rx="3" ry="3" fill="#000000" stroke="#000000" pointer-events="all"/><ellipse cx="555" cy="150" rx="3" ry="3" fill="#000000" stroke="#000000" pointer-events="all"/><rect x="75" y="160" width="480" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 478px; height: 1px; padding-top: 170px; margin-left: 76px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Sequência de elementros</div></div></div></foreignObject><text x="315" y="174" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Sequência de elementros</text></switch></g><path d="M 72.22 266.68 L 98.68 213.76 L 507.7 418.28 L 523.18 387.33 L 564.55 479.78 L 465.77 502.14 L 481.24 471.2 Z" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><g transform="translate(-0.5 -0.5)rotate(-65 105.44132860144782 249.40392921291232)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 249px; margin-left: 105px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 11px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; background-color: #ffffff; white-space: nowrap; "><p style="line-height: 60%"><font style="font-size: 14px"><b>Stream</b></font></p></div></div></div></foreignObject><text x="105" y="253" fill="#000000" font-family="Helvetica" font-size="11px" text-anchor="middle">Stream</text></switch></g><path d="M 185 245 C 185 236.72 198.43 230 215 230 C 222.96 230 230.59 231.58 236.21 234.39 C 241.84 237.21 245 241.02 245 245 L 245 295 C 245 303.28 231.57 310 215 310 C 198.43 310 185 303.28 185 295 Z" fill="#dae8fc" stroke="#6c8ebf" stroke-miterlimit="10" pointer-events="all"/><path d="M 245 245 C 245 253.28 231.57 260 215 260 C 198.43 260 185 253.28 185 245" fill="none" stroke="#6c8ebf" stroke-miterlimit="10" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 58px; height: 1px; padding-top: 283px; margin-left: 186px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Somente caixas azuis</div></div></div></foreignObject><text x="215" y="286" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Somente ca...</text></switch></g><path d="M 285 285 C 285 276.72 300.67 270 320 270 C 329.28 270 338.18 271.58 344.75 274.39 C 351.31 277.21 355 281.02 355 285 L 355 345 C 355 353.28 339.33 360 320 360 C 300.67 360 285 353.28 285 345 Z" fill="#e1d5e7" stroke="#9673a6" stroke-miterlimit="10" pointer-events="all"/><path d="M 355 285 C 355 293.28 339.33 300 320 300 C 300.67 300 285 293.28 285 285" fill="none" stroke="#9673a6" stroke-miterlimit="10" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 68px; height: 1px; padding-top: 328px; margin-left: 286px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Transforme as em triângulos</div></div></div></foreignObject><text x="320" y="331" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Transforme a...</text></switch></g><path d="M 385 345 C 385 336.72 398.43 330 415 330 C 422.96 330 430.59 331.58 436.21 334.39 C 441.84 337.21 445 341.02 445 345 L 445 395 C 445 403.28 431.57 410 415 410 C 398.43 410 385 403.28 385 395 Z" fill="#f8cecc" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/><path d="M 445 345 C 445 353.28 431.57 360 415 360 C 398.43 360 385 353.28 385 345" fill="none" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 58px; height: 1px; padding-top: 383px; margin-left: 386px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Pinte as de rosa</div></div></div></foreignObject><text x="415" y="386" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Pinte as d...</text></switch></g><path d="M 55 90 Q -5 120 0 160 Q 5 200 69.15 227.49" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 73.97 229.56 L 66.16 230.02 L 69.15 227.49 L 68.92 223.59 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 185 190 L 515 350" fill="none" stroke="#000000" stroke-miterlimit="10" stroke-dasharray="3 3" pointer-events="stroke"/><rect x="345" y="240" width="40" height="20" fill="none" stroke="none" transform="rotate(25,365,250)" pointer-events="all"/><g transform="translate(-0.5 -0.5)rotate(25 365 250)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 38px; height: 1px; padding-top: 250px; margin-left: 346px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Operações intermediárias</div></div></div></foreignObject><text x="365" y="254" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Operaç...</text></switch></g><path d="M 575 465 C 575 456.72 595.15 450 620 450 C 631.93 450 643.38 451.58 651.82 454.39 C 660.26 457.21 665 461.02 665 465 L 665 535 C 665 543.28 644.85 550 620 550 C 595.15 550 575 543.28 575 535 Z" fill="#e6e6e6" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 665 465 C 665 473.28 644.85 480 620 480 C 595.15 480 575 473.28 575 465" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 88px; height: 1px; padding-top: 513px; margin-left: 576px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Colete os resultados numa lista</div></div></div></foreignObject><text x="620" y="516" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Colete os resul...</text></switch></g><path d="M 45 310 L 605 590" fill="none" stroke="#000000" stroke-miterlimit="10" stroke-dasharray="3 3" pointer-events="stroke"/><rect x="240.32" y="451.13" width="140" height="20" fill="none" stroke="none" transform="rotate(25,310.32,461.13)" pointer-events="all"/><g transform="translate(-0.5 -0.5)rotate(25 310.3199999999997 461.1300000000001)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 138px; height: 1px; padding-top: 461px; margin-left: 241px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Operações de agregação</div></div></div></foreignObject><text x="310" y="465" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Operações de agregação</text></switch></g><path d="M 565 380 L 695 450" fill="none" stroke="#000000" stroke-miterlimit="10" stroke-dasharray="3 3" pointer-events="stroke"/><rect x="595" y="390" width="97.99" height="20" fill="none" stroke="none" transform="rotate(30,643.99,400)" pointer-events="all"/><g transform="translate(-0.5 -0.5)rotate(30 643.9949999999999 400)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 96px; height: 1px; padding-top: 400px; margin-left: 596px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Operação terminal</div></div></div></foreignObject><text x="644" y="404" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Operação terminal</text></switch></g><path d="M 169 610 L 265.57 675.63 L 169 741.25 Z" fill="#f8cecc" stroke="#b85450" stroke-miterlimit="10" transform="rotate(-90,217.29,675.63)" pointer-events="all"/><rect x="197.66" y="686.42" width="40" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 38px; height: 1px; padding-top: 696px; margin-left: 199px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Triângulo</div></div></div></foreignObject><text x="218" y="700" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Triâng...</text></switch></g><path d="M 331.66 610 L 428.23 675.63 L 331.66 741.25 Z" fill="#f8cecc" stroke="#b85450" stroke-miterlimit="10" transform="rotate(-90,379.94,675.63)" pointer-events="all"/><rect x="360.32" y="686.42" width="40" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 38px; height: 1px; padding-top: 696px; margin-left: 361px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Triângulo</div></div></div></foreignObject><text x="380" y="700" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Triâng...</text></switch></g><path d="M 68 741.25 L 542 741.25" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/><ellipse cx="65" cy="741.25" rx="3" ry="3" fill="#000000" stroke="#000000" pointer-events="all"/><ellipse cx="545" cy="741.25" rx="3" ry="3" fill="#000000" stroke="#000000" pointer-events="all"/><rect x="65" y="751.25" width="480" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 478px; height: 1px; padding-top: 761px; margin-left: 66px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Resultado da operação terminal</div></div></div></foreignObject><text x="305" y="765" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Resultado da operação terminal</text></switch></g><path d="M 675 570 Q 695 650 660 670 Q 625 690 561.37 690" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 556.12 690 L 563.12 686.5 L 561.37 690 L 563.12 693.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><rect x="199" y="0" width="199" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 197px; height: 1px; padding-top: 10px; margin-left: 200px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Fonte de dados</div></div></div></foreignObject><text x="299" y="14" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Fonte de dados</text></switch></g></g><switch><g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><a transform="translate(0,-5)" xlink:href="https://www.diagrams.net/doc/faq/svg-export-text-problems" target="_blank"><text text-anchor="middle" font-size="10px" x="50%" y="100%">Viewer does not support full SVG 1.1</text></a></switch></svg>
+        </section>
+        <section>
+            <h1><a id="lambda">Expressões lambda, referência de método e interfaces funcionais</a></h1>
+            <pre>
+                <code>class JavaStreamExemplo {</code>
+                <code>    private String value;</code>
+                <code>}</code>
+            </pre>
+        </section>
+        <section>
+            <h1><a id="aggregation">Exemplos de uso das operações de agregação</a></h1>
+            <pre>
+                <code>class JavaStreamExemplo {</code>
+                <code>    private String value;</code>
+                <code>}</code>
+            </pre>
+        </section>
+        <section>
+            <h1><a id="implementation">Implementação do exemplo</a></h1>
+            <pre>
+                <code>class JavaStreamExemplo {</code>
+                <code>    private String value;</code>
+                <code>}</code>
+            </pre>
+        </section>
+    </article>
+</body>
+
+</html>
